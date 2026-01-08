@@ -1,0 +1,98 @@
+﻿
+@model POC.VisitTracker.Models.VisitViewModel
+
+@{
+    ViewBag.Title = "Visit List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Hospital Visits (@Model.TotalVisits)</h2>
+<hr />
+
+<div style="margin-bottom: 20px;">
+    <button class="btn btn-primary" onclick="loadEditForm()">
+        Add New Visit
+    </button>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Patient ID</th>
+                <th>Visit Date</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Notes</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.VisitsList != null && Model.VisitsList.Count > 0)
+            {
+                foreach (var visit in Model.VisitsList)
+                {
+                    <tr>
+                        <td>@visit.PatientId</td>
+                        <td>@visit.VisitDate.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td><span class="badge bg-info">@visit.VisitType</span></td>
+                        <td>
+                            @if (visit.Status == "New")
+                            {
+                                <span class="badge bg-warning">New</span>
+                            }
+                            else if (visit.Status == "Pending")
+                            {
+                                <span class="badge bg-secondary">Pending</span>
+                            }
+                            else if (visit.Status == "Submitted")
+                            {
+                                <span class="badge bg-success">Submitted</span>
+                            }
+                            else if (visit.Status == "Closed")
+                            {
+                                <span class="badge bg-dark">Closed</span>
+                            }
+                        </td>
+                        <td>@(string.IsNullOrEmpty(visit.Notes) ? "-" : visit.Notes.Substring(0, Math.Min(30, visit.Notes.Length)) + "...")</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" onclick="loadEditForm(@visit.Id)">Edit</button>
+                            @Html.ActionLink("Delete", "Delete", new { id = visit.Id }, new { @class = "btn btn-sm btn-danger", onclick = "return confirm('Are you sure?');" })
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" style="text-align: center; color: #999;">No visits found. Click "Add New Visit" to create one.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Add/Edit Visit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="editFormContainer">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function loadEditForm(visitId) {
+            var url = visitId ? '/Visit/Edit/' + visitId : '/Visit/Edit';
+            $.get(url, function (data) {
+                $('#editFormContainer').html(data);
+                $('#editModal').modal('show');
+            });
+        }
+    </script>
+}
